@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Collection — Krystal's Art Shop</title>
+<title>Shop — Krystal's Art Shop</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Imbue:opsz,wght@10..100,300;10..100,400;10..100,700&display=swap" rel="stylesheet">
@@ -23,14 +23,10 @@
 </header>
 
 <main class="shop">
-  <div id="coll-breadcrumb" class="coll-breadcrumb" style="font-size:.82rem;color:var(--muted);margin-bottom:28px"></div>
-  <div id="collection-body">
-    <div class="variants-header">
-      <div id="coll-name" class="variants-title"></div>
-      <div id="coll-desc" class="variants-sub"></div>
-    </div>
-    <div class="variants-grid" id="coll-products"></div>
-  </div>
+  <div class="view-label">Everything in one place</div>
+  <div class="view-title">Shop All</div>
+  <div class="shop-filters" id="shop-filters"></div>
+  <div id="shop-grid"></div>
 </main>
 
 <footer>
@@ -49,6 +45,7 @@
 </div>
 
 <div id="toast" role="status" aria-live="polite"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="main.js"></script>
 </body>
 </html>

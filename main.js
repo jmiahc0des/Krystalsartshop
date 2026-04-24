@@ -35,6 +35,24 @@ var IMGS3 = {
   "face-dusk":     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23f0d8e4'/%3E%3Ctext x='200' y='140' font-family='sans-serif' font-size='48' text-anchor='middle' fill='%23c478a0'%3E✦%3C/text%3E%3Ctext x='200' y='185' font-family='sans-serif' font-size='15' text-anchor='middle' fill='%23b46890'%3EDusk%3C/text%3E%3Ctext x='200' y='208' font-family='sans-serif' font-size='12' text-anchor='middle' fill='%23b46890'%3EComing Soon%3C/text%3E%3C/svg%3E"
 };
 
+var PIECES2 = [
+  {id:"fash-noir",   name:"Noir",   desc:"Ink-black silhouettes and bone white — sharp, editorial, unforgettable.", products:[{type:"notebook",label:"Notebook",price:20},{type:"mug",label:"Ceramic Mug",price:20},{type:"poster",label:"Art Poster",price:16},{type:"tote",label:"Tote Bag",price:30}]},
+  {id:"fash-blush",  name:"Blush",  desc:"Soft pinks layered over cream — effortless femininity, dressed to feel.", products:[{type:"notebook",label:"Notebook",price:20},{type:"mug",label:"Ceramic Mug",price:20},{type:"poster",label:"Art Poster",price:16},{type:"tote",label:"Tote Bag",price:30}]},
+  {id:"fash-cobalt", name:"Cobalt", desc:"Electric blue on near-black — the confidence of a woman who knows.",     products:[{type:"notebook",label:"Notebook",price:20},{type:"mug",label:"Ceramic Mug",price:20},{type:"poster",label:"Art Poster",price:16},{type:"tote",label:"Tote Bag",price:30}]},
+  {id:"fash-ivory",  name:"Ivory",  desc:"Warm whites and aged linen — classic, quiet, and entirely intentional.", products:[{type:"notebook",label:"Notebook",price:20},{type:"mug",label:"Ceramic Mug",price:20},{type:"poster",label:"Art Poster",price:16},{type:"tote",label:"Tote Bag",price:30}]},
+  {id:"fash-ember",  name:"Ember",  desc:"Terracotta and rust — worn-in warmth, like a favourite coat in October.", products:[{type:"notebook",label:"Notebook",price:20},{type:"mug",label:"Ceramic Mug",price:20},{type:"poster",label:"Art Poster",price:16},{type:"tote",label:"Tote Bag",price:30}]},
+  {id:"fash-forest", name:"Forest", desc:"Deep hunter green with a thread of gold — richness, rooted and alive.",  products:[{type:"notebook",label:"Notebook",price:20},{type:"mug",label:"Ceramic Mug",price:20},{type:"poster",label:"Art Poster",price:16},{type:"tote",label:"Tote Bag",price:30}]}
+];
+
+var IMGS2 = {
+  "fash-noir":   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23d8d4d0'/%3E%3Ctext x='200' y='140' font-family='sans-serif' font-size='48' text-anchor='middle' fill='%23a09c98'%3E✦%3C/text%3E%3Ctext x='200' y='185' font-family='sans-serif' font-size='15' text-anchor='middle' fill='%23908c88'%3ENoir%3C/text%3E%3Ctext x='200' y='208' font-family='sans-serif' font-size='12' text-anchor='middle' fill='%23908c88'%3EComing Soon%3C/text%3E%3C/svg%3E",
+  "fash-blush":  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23f5d8dc'/%3E%3Ctext x='200' y='140' font-family='sans-serif' font-size='48' text-anchor='middle' fill='%23c49098'%3E✦%3C/text%3E%3Ctext x='200' y='185' font-family='sans-serif' font-size='15' text-anchor='middle' fill='%23b48088'%3EBlush%3C/text%3E%3Ctext x='200' y='208' font-family='sans-serif' font-size='12' text-anchor='middle' fill='%23b48088'%3EComing Soon%3C/text%3E%3C/svg%3E",
+  "fash-cobalt": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23c0cce8'/%3E%3Ctext x='200' y='140' font-family='sans-serif' font-size='48' text-anchor='middle' fill='%234868b4'%3E✦%3C/text%3E%3Ctext x='200' y='185' font-family='sans-serif' font-size='15' text-anchor='middle' fill='%233858a4'%3ECobalt%3C/text%3E%3Ctext x='200' y='208' font-family='sans-serif' font-size='12' text-anchor='middle' fill='%233858a4'%3EComing Soon%3C/text%3E%3C/svg%3E",
+  "fash-ivory":  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23f0ece4'/%3E%3Ctext x='200' y='140' font-family='sans-serif' font-size='48' text-anchor='middle' fill='%23b0a890'%3E✦%3C/text%3E%3Ctext x='200' y='185' font-family='sans-serif' font-size='15' text-anchor='middle' fill='%23a09880'%3EIvory%3C/text%3E%3Ctext x='200' y='208' font-family='sans-serif' font-size='12' text-anchor='middle' fill='%23a09880'%3EComing Soon%3C/text%3E%3C/svg%3E",
+  "fash-ember":  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23f0d4c0'/%3E%3Ctext x='200' y='140' font-family='sans-serif' font-size='48' text-anchor='middle' fill='%23c07848'%3E✦%3C/text%3E%3Ctext x='200' y='185' font-family='sans-serif' font-size='15' text-anchor='middle' fill='%23b06838'%3EEmber%3C/text%3E%3Ctext x='200' y='208' font-family='sans-serif' font-size='12' text-anchor='middle' fill='%23b06838'%3EComing Soon%3C/text%3E%3C/svg%3E",
+  "fash-forest": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23c8d8c8'/%3E%3Ctext x='200' y='140' font-family='sans-serif' font-size='48' text-anchor='middle' fill='%23487848'%3E✦%3C/text%3E%3Ctext x='200' y='185' font-family='sans-serif' font-size='15' text-anchor='middle' fill='%23386838'%3EForest%3C/text%3E%3Ctext x='200' y='208' font-family='sans-serif' font-size='12' text-anchor='middle' fill='%23386838'%3EComing Soon%3C/text%3E%3C/svg%3E"
+};
+
 var TYPES = [
   {type:"notebook",label:"Notebook",   icon:"&#128213;",desc:"A5 soft-touch, 120 pages"},
   {type:"mug",     label:"Ceramic Mug",icon:"&#9749;",  desc:"11oz, dishwasher safe"},
@@ -48,6 +66,7 @@ var activeType = "notebook";
 
 var PAGE = (function() {
   var p = window.location.pathname;
+  if (p.indexOf("shop.html")        !== -1) return "shop";
   if (p.indexOf("collections.html") !== -1) return "collections";
   if (p.indexOf("collection.html")  !== -1) return "collection";
   return "home";
@@ -256,7 +275,7 @@ function carouselMove2(dir) {
   if (carouselBusy2) return;
   var viewport = document.getElementById("carousel-viewport-2");
   var grid     = document.getElementById("pieces-grid-2");
-  if (!grid || !viewport || PIECES.length <= getCarouselVisible()) return;
+  if (!grid || !viewport || PIECES2.length <= getCarouselVisible()) return;
 
   var step = getCardStep2(viewport);
   carouselIndex2 += dir;
@@ -267,11 +286,11 @@ function carouselMove2(dir) {
     duration: 0.38,
     ease: "power2.inOut",
     onComplete: function() {
-      if (carouselIndex2 >= CLONE_COUNT + PIECES.length) {
+      if (carouselIndex2 >= CLONE_COUNT + PIECES2.length) {
         carouselIndex2 = CLONE_COUNT;
         gsap.set(grid, {x: -(carouselIndex2 * step)});
       } else if (carouselIndex2 < CLONE_COUNT) {
-        carouselIndex2 = CLONE_COUNT + PIECES.length - 1;
+        carouselIndex2 = CLONE_COUNT + PIECES2.length - 1;
         gsap.set(grid, {x: -(carouselIndex2 * step)});
       }
       carouselBusy2 = false;
@@ -289,7 +308,7 @@ function updateCarousel2() {
   carouselIndex2 = CLONE_COUNT;
   buildCarouselClones2();
   gsap.set(grid, {x: -(carouselIndex2 * getCardStep2(viewport))});
-  var hidden = PIECES.length <= getCarouselVisible();
+  var hidden = PIECES2.length <= getCarouselVisible();
   if (prev) prev.disabled = hidden;
   if (next) next.disabled = hidden;
 }
@@ -429,9 +448,133 @@ function renderCollectionPage() {
   document.getElementById("coll-products").innerHTML = html;
 }
 
+/* ── SHOP PAGE ── */
+function buildAllProducts() {
+  var all = [];
+  var sources = [
+    {collId:"lovely-ladies", collLabel:"Lovely Ladies", pieces:PIECES,  imgs:IMGS },
+    {collId:"faces",         collLabel:"Faces",         pieces:PIECES3, imgs:IMGS3},
+    {collId:"fashion",       collLabel:"Fashion",       pieces:PIECES2, imgs:IMGS2}
+  ];
+  for (var s = 0; s < sources.length; s++) {
+    var src = sources[s];
+    for (var i = 0; i < src.pieces.length; i++) {
+      var p = src.pieces[i];
+      for (var j = 0; j < p.products.length; j++) {
+        var pr = p.products[j];
+        all.push({
+          collId:    src.collId,
+          collLabel: src.collLabel,
+          pieceId:   p.id,
+          pieceName: p.name,
+          type:      pr.type,
+          typeLabel: pr.label,
+          price:     pr.price,
+          img:       src.imgs[p.id] || ""
+        });
+      }
+    }
+  }
+  return all;
+}
+
+function renderShopPage() {
+  var params     = new URLSearchParams(window.location.search);
+  var collFilter = params.get("collection") || "all";
+  var typeFilter = params.get("type")       || "all";
+
+  var collPills  = ["all","lovely-ladies","faces","fashion"];
+  var collLabels = {all:"All Collections","lovely-ladies":"Lovely Ladies",faces:"Faces",fashion:"Fashion"};
+  var typePills  = ["all","notebook","mug","poster","tote"];
+  var typeLabels = {all:"All Products",notebook:"Notebooks",mug:"Mugs",poster:"Posters",tote:"Totes"};
+
+  var collHtml = "";
+  for (var c = 0; c < collPills.length; c++) {
+    var cv = collPills[c];
+    collHtml += "<button class=\"filter-pill" + (collFilter===cv?" active":"") + "\""
+              + " onclick=\"shopFilter('collection','" + cv + "')\">" + collLabels[cv] + "</button>";
+  }
+  var typeHtml = "";
+  for (var t = 0; t < typePills.length; t++) {
+    var tv = typePills[t];
+    typeHtml += "<button class=\"filter-pill" + (typeFilter===tv?" active":"") + "\""
+              + " onclick=\"shopFilter('type','" + tv + "')\">" + typeLabels[tv] + "</button>";
+  }
+  var filtersEl = document.getElementById("shop-filters");
+  if (filtersEl) filtersEl.innerHTML =
+      "<div class=\"filter-row\"><span class=\"filter-label\">Collection</span>" + collHtml + "</div>"
+    + "<div class=\"filter-row\"><span class=\"filter-label\">Product</span>"    + typeHtml + "</div>";
+
+  var all      = buildAllProducts();
+  var filtered = [];
+  for (var k = 0; k < all.length; k++) {
+    var item = all[k];
+    if ((collFilter === "all" || item.collId === collFilter) &&
+        (typeFilter === "all" || item.type   === typeFilter)) {
+      filtered.push(item);
+    }
+  }
+
+  var grid = document.getElementById("shop-grid");
+  if (!grid) return;
+  if (filtered.length === 0) {
+    grid.innerHTML = "<div class=\"shop-empty\">No products found.</div>";
+    return;
+  }
+  var html = "";
+  for (var m = 0; m < filtered.length; m++) {
+    var prod = filtered[m];
+    html += "<div class=\"variant-card\">"
+          + "<img class=\"variant-img\" src=\"" + prod.img + "\" alt=\"" + prod.pieceName + " " + prod.typeLabel + "\">"
+          + "<div class=\"variant-body\">"
+          + "<div class=\"variant-piece\">" + prod.pieceName + " " + prod.typeLabel + "</div>"
+          + "<div class=\"variant-coll\">" + prod.collLabel + "</div>"
+          + "<div class=\"variant-price\">$" + prod.price + "</div>"
+          + "<button class=\"variant-add\" onclick=\"shopAdd('" + prod.collId + "','" + prod.pieceId + "','" + prod.type + "')\">Add to Cart</button>"
+          + "</div></div>";
+  }
+  grid.innerHTML = "<div class=\"variants-grid\">" + html + "</div>";
+}
+
+function shopFilter(key, value) {
+  var params = new URLSearchParams(window.location.search);
+  params.set(key, value);
+  history.replaceState(null, "", "?" + params.toString());
+  renderShopPage();
+}
+
+function shopAdd(collId, pieceId, type) {
+  var sources = [
+    {collId:"lovely-ladies", pieces:PIECES },
+    {collId:"faces",         pieces:PIECES3},
+    {collId:"fashion",       pieces:PIECES2}
+  ];
+  var piece = null;
+  for (var s = 0; s < sources.length; s++) {
+    if (sources[s].collId !== collId) continue;
+    for (var i = 0; i < sources[s].pieces.length; i++) {
+      if (sources[s].pieces[i].id === pieceId) { piece = sources[s].pieces[i]; break; }
+    }
+  }
+  if (!piece) return;
+  var prod = null;
+  for (var j = 0; j < piece.products.length; j++) {
+    if (piece.products[j].type === type) { prod = piece.products[j]; break; }
+  }
+  if (!prod) return;
+  var key = pieceId + "__" + type;
+  cart[key] = (cart[key] || 0) + 1;
+  updateBadge();
+  renderShopPage();
+  toast(piece.name + " " + prod.label + " added to cart!");
+}
+
 /* ── INIT ── */
 window.onload = function() {
-  if (PAGE === "collections") {
+  if (PAGE === "shop") {
+    renderShopPage();
+    renderCartBody();
+  } else if (PAGE === "collections") {
     renderCollectionsPage();
   } else if (PAGE === "collection") {
     renderCollectionPage();
@@ -440,8 +583,6 @@ window.onload = function() {
     renderArtView();
     renderArtView2();
     renderArtView3();
-    renderTypeList();
-    renderVariants();
     setTimeout(function() {
       var v = document.getElementById("view-art");
       if (v) v.classList.add("visible");
@@ -548,8 +689,8 @@ var selectedProd2 = {};
 
 function renderArtView2() {
   var html = "";
-  for (var i = 0; i < PIECES.length; i++) {
-    var p   = PIECES[i];
+  for (var i = 0; i < PIECES2.length; i++) {
+    var p   = PIECES2[i];
     var sel = selectedProd2[p.id] || null;
     var icons = "";
     for (var j = 0; j < p.products.length; j++) {
@@ -572,7 +713,7 @@ function renderArtView2() {
       action = "<span class=\"card-price-empty\">Select a product</span>";
     }
     html += "<div class=\"piece-card\">"
-          + "<img class=\"piece-img\" src=\"" + IMGS[p.id] + "\" alt=\"" + p.name + "\">"
+          + "<img class=\"piece-img\" src=\"" + IMGS2[p.id] + "\" alt=\"" + p.name + "\">"
           + "<div class=\"piece-body\">"
           + "<div class=\"piece-name\">" + p.name + "</div>"
           + "<div class=\"piece-desc\">" + p.desc + "</div>"
@@ -597,15 +738,17 @@ function selectProd2(pieceId, type) {
 }
 
 function add2(pieceId, type) {
-  var piece = getPiece(pieceId);
-  var prod  = getProd(piece, type);
+  var piece = null;
+  for (var i = 0; i < PIECES2.length; i++) { if (PIECES2[i].id === pieceId) { piece = PIECES2[i]; break; } }
+  if (!piece) return;
+  var prod = null;
+  for (var j = 0; j < piece.products.length; j++) { if (piece.products[j].type === type) { prod = piece.products[j]; break; } }
   if (!prod) return;
   var key = pieceId + "__" + type;
   cart[key] = (cart[key] || 0) + 1;
   delete selectedProd2[pieceId];
   updateBadge();
   renderArtView2();
-  renderVariants();
   toast(piece.name + " " + prod.label + " added to cart!");
 }
 
