@@ -18,12 +18,12 @@ var PIECES = [
 ];
 
 var PIECES3 = [
-  {id:"face-aurora",   name:"Aurora",   desc:"Iridescent dawn — soft, luminous, and full of quiet wonder.",          products:[{type:"notebook",label:"Notebook",price:20},{type:"mug",label:"Ceramic Mug",price:20},{type:"poster",label:"Art Poster",price:16},{type:"tote",label:"Tote Bag",price:30}]},
-  {id:"face-solstice", name:"Solstice", desc:"Golden warmth, freckled light — a face turned toward the summer sun.", products:[{type:"notebook",label:"Notebook",price:20},{type:"mug",label:"Ceramic Mug",price:20},{type:"poster",label:"Art Poster",price:16},{type:"tote",label:"Tote Bag",price:30}]},
-  {id:"face-mirage",   name:"Mirage",   desc:"Soft indigo and haze — beauty that shimmers at the edge of sight.",   products:[{type:"notebook",label:"Notebook",price:20},{type:"mug",label:"Ceramic Mug",price:20},{type:"poster",label:"Art Poster",price:16},{type:"tote",label:"Tote Bag",price:30}]},
-  {id:"face-veil",     name:"Veil",     desc:"Translucent, layered, serene — a portrait through petals and mist.",  products:[{type:"notebook",label:"Notebook",price:20},{type:"mug",label:"Ceramic Mug",price:20},{type:"poster",label:"Art Poster",price:16},{type:"tote",label:"Tote Bag",price:30}]},
-  {id:"face-ether",    name:"Ether",    desc:"Pale lavender and white — a presence more felt than seen.",            products:[{type:"notebook",label:"Notebook",price:20},{type:"mug",label:"Ceramic Mug",price:20},{type:"poster",label:"Art Poster",price:16},{type:"tote",label:"Tote Bag",price:30}]},
-  {id:"face-dusk",     name:"Dusk",     desc:"Dusty rose fades into slate — the tender in-between of day and night.",products:[{type:"notebook",label:"Notebook",price:20},{type:"mug",label:"Ceramic Mug",price:20},{type:"poster",label:"Art Poster",price:16},{type:"tote",label:"Tote Bag",price:30}]}
+  {id:"face-aurora",   name:"Aurora",   desc:"Iridescent dawn — soft, luminous, and full of quiet wonder.",          products:[{type:"notebook",label:"Notebook",price:20},{type:"poster",label:"Art Poster",price:16},{type:"tote",label:"Tote Bag",price:30}]},
+  {id:"face-solstice", name:"Solstice", desc:"Golden warmth, freckled light — a face turned toward the summer sun.", products:[{type:"notebook",label:"Notebook",price:20},{type:"poster",label:"Art Poster",price:16},{type:"tote",label:"Tote Bag",price:30}]},
+  {id:"face-mirage",   name:"Mirage",   desc:"Soft indigo and haze — beauty that shimmers at the edge of sight.",   products:[{type:"notebook",label:"Notebook",price:20},{type:"poster",label:"Art Poster",price:16},{type:"tote",label:"Tote Bag",price:30}]},
+  {id:"face-veil",     name:"Veil",     desc:"Translucent, layered, serene — a portrait through petals and mist.",  products:[{type:"notebook",label:"Notebook",price:20},{type:"poster",label:"Art Poster",price:16},{type:"tote",label:"Tote Bag",price:30}]},
+  {id:"face-ether",    name:"Ether",    desc:"Pale lavender and white — a presence more felt than seen.",            products:[{type:"notebook",label:"Notebook",price:20},{type:"poster",label:"Art Poster",price:16},{type:"tote",label:"Tote Bag",price:30}]},
+  {id:"face-dusk",     name:"Dusk",     desc:"Dusty rose fades into slate — the tender in-between of day and night.",products:[{type:"notebook",label:"Notebook",price:20},{type:"poster",label:"Art Poster",price:16},{type:"tote",label:"Tote Bag",price:30}]}
 ];
 
 var IMGS3 = {
@@ -218,16 +218,21 @@ window.addEventListener("resize", function() { C1.update(); C2.update(); C3.upda
 function renderCollectionsPage() {
   var grid = document.getElementById("collections-grid");
   if (!grid) return;
+  var colls = [
+    {id:"lovely-ladies", label:"Lovely Ladies", desc:"Portraits of women in bold, expressive colour.", img:IMGS[PIECES[0].id],   count:PIECES.length},
+    {id:"faces",         label:"Faces",         desc:"Studies of form, identity, and emotion.",      img:IMGS3[PIECES3[0].id], count:PIECES3.length},
+    {id:"fashion",       label:"Fashion",       desc:"Wearable art inspired by style and movement.", img:IMGS2[PIECES2[0].id], count:PIECES2.length}
+  ];
   var html = "";
-  for (var i = 0; i < PIECES.length; i++) {
-    var p = PIECES[i];
-    html += "<div class=\"piece-card\">"
-          + "<img class=\"piece-img\" src=\"" + IMGS[p.id] + "\" alt=\"" + p.name + "\">"
-          + "<div class=\"piece-body\">"
-          + "<div class=\"piece-name\"><a href=\"product.html?design=" + p.id + "\" class=\"piece-name-link\">" + p.name + "</a></div>"
-          + "<div class=\"piece-desc\">" + p.desc + "</div>"
-          + "<a class=\"collection-cta-btn\" href=\"collection.html?id=" + p.id + "\">View Collection &#8594;</a>"
-          + "</div></div>";
+  for (var i = 0; i < colls.length; i++) {
+    var c = colls[i];
+    html += "<a class=\"coll-group-card\" href=\"shop.html?collection=" + c.id + "\">"
+          + "<img class=\"coll-group-img\" src=\"" + c.img + "\" alt=\"" + c.label + "\">"
+          + "<div class=\"coll-group-body\">"
+          + "<div class=\"coll-group-name\">" + c.label + "</div>"
+          + "<div class=\"coll-group-desc\">" + c.desc + "</div>"
+          + "<div class=\"coll-group-count\">" + c.count + " designs</div>"
+          + "</div></a>";
   }
   grid.innerHTML = html;
 }
@@ -391,11 +396,36 @@ function renderShopPage() {
     typeHtml += "<button class=\"filter-pill" + (typeFilter===tv?" active":"") + "\""
               + " onclick=\"shopFilter('type','" + tv + "')\">" + typeLabels[tv] + "</button>";
   }
+
   var filtersEl = document.getElementById("shop-filters");
   if (filtersEl) filtersEl.innerHTML =
-      "<div class=\"filter-row\"><span class=\"filter-label\">Collection</span>" + collHtml + "</div>"
+      "<div class=\"filter-row\"><span class=\"filter-label\">Collection</span>" + collHtml
+        + "<a class=\"filter-pill-link\" href=\"collections.html\">Browse All ›</a></div>"
     + "<div class=\"filter-row\"><span class=\"filter-label\">Product</span>"    + typeHtml + "</div>";
 
+  // Dynamic heading
+  var labelEl = document.getElementById("shop-heading-label");
+  var titleEl = document.getElementById("shop-heading-title");
+  if (labelEl && titleEl) {
+    if (collFilter !== "all" && typeFilter !== "all") {
+      labelEl.textContent = collLabels[collFilter];
+      titleEl.textContent = typeLabels[typeFilter];
+    } else if (collFilter !== "all") {
+      labelEl.textContent = "Collection";
+      titleEl.textContent = collLabels[collFilter];
+    } else if (typeFilter !== "all") {
+      labelEl.textContent = "Product type";
+      titleEl.textContent = typeLabels[typeFilter];
+    } else {
+      labelEl.textContent = "Everything in one place";
+      titleEl.textContent = "Shop All";
+    }
+  }
+
+  var grid = document.getElementById("shop-grid");
+  if (!grid) return;
+
+  // Show filtered product grid (all products when no filter active)
   var all      = buildAllProducts();
   var filtered = [];
   for (var k = 0; k < all.length; k++) {
@@ -406,12 +436,29 @@ function renderShopPage() {
     }
   }
 
-  var grid = document.getElementById("shop-grid");
-  if (!grid) return;
   if (filtered.length === 0) {
-    grid.innerHTML = "<div class=\"shop-empty\">No products found.</div>";
+    var msg;
+    if (collFilter !== "all" && typeFilter !== "all") {
+      msg = "No " + typeLabels[typeFilter] + " in " + collLabels[collFilter];
+    } else if (typeFilter !== "all") {
+      msg = "No " + typeLabels[typeFilter] + " available right now";
+    } else {
+      msg = "Nothing in " + collLabels[collFilter] + " yet";
+    }
+    grid.innerHTML = "<div class=\"shop-empty\">"
+      + "<div class=\"shop-empty-symbol\">\u2726</div>"
+      + "<div class=\"shop-empty-msg\">" + msg + "</div>"
+      + "<button class=\"shop-empty-reset\" onclick=\"shopFilter('reset','')\">Clear filters</button>"
+      + "</div>";
     return;
   }
+
+  var isFiltered = collFilter !== "all" || typeFilter !== "all";
+  var countBar = "<div class=\"shop-context-bar\">"
+    + "<span class=\"shop-count\">" + filtered.length + " product" + (filtered.length === 1 ? "" : "s") + "</span>"
+    + (isFiltered ? "<button class=\"shop-clear-btn\" onclick=\"shopFilter('reset','')\">Clear filters</button>" : "")
+    + "</div>";
+
   var html = "";
   for (var m = 0; m < filtered.length; m++) {
     var prod = filtered[m];
@@ -424,12 +471,13 @@ function renderShopPage() {
           + "<button class=\"variant-add\" onclick=\"shopAdd('" + prod.collId + "','" + prod.pieceId + "','" + prod.type + "')\">Add to Cart</button>"
           + "</div></div>";
   }
-  grid.innerHTML = "<div class=\"variants-grid\">" + html + "</div>";
+  grid.innerHTML = countBar + "<div class=\"variants-grid\">" + html + "</div>";
 }
 
 function shopFilter(key, value) {
   var params = new URLSearchParams(window.location.search);
-  params.set(key, value);
+  if (key === "reset") { params.delete("collection"); params.delete("type"); }
+  else params.set(key, value);
   history.replaceState(null, "", "?" + params.toString());
   renderShopPage();
 }
