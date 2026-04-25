@@ -53,22 +53,14 @@ var IMGS2 = {
   "fash-forest": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23c8d8c8'/%3E%3Ctext x='200' y='140' font-family='sans-serif' font-size='48' text-anchor='middle' fill='%23487848'%3E✦%3C/text%3E%3Ctext x='200' y='185' font-family='sans-serif' font-size='15' text-anchor='middle' fill='%23386838'%3EForest%3C/text%3E%3Ctext x='200' y='208' font-family='sans-serif' font-size='12' text-anchor='middle' fill='%23386838'%3EComing Soon%3C/text%3E%3C/svg%3E"
 };
 
-var TYPES = [
-  {type:"notebook",label:"Notebook",   icon:"&#128213;",desc:"A5 soft-touch, 120 pages"},
-  {type:"mug",     label:"Ceramic Mug",icon:"&#9749;",  desc:"11oz, dishwasher safe"},
-  {type:"poster",  label:"Art Poster", icon:"&#128444;",desc:"Archival matte, 235gsm"},
-  {type:"tote",    label:"Tote Bag",   icon:"&#128722;",desc:"Natural canvas, 15\"x16\""}
-];
-
-var cart       = {};
-var activeMode = "art";
-var activeType = "notebook";
+var cart = {};
 
 var PAGE = (function() {
   var p = window.location.pathname;
   if (p.indexOf("shop.html")        !== -1) return "shop";
   if (p.indexOf("collections.html") !== -1) return "collections";
   if (p.indexOf("collection.html")  !== -1) return "collection";
+  if (p.indexOf("product.html")      !== -1) return "product";
   return "home";
 })();
 
@@ -132,10 +124,7 @@ function stopCycle() {
  * snaps to the visually identical real position — completely invisible because both
  * positions render the exact same card content.
  */
-var CLONE_COUNT   = 3;
-var carouselIndex = CLONE_COUNT;
-var touchStartX   = 0;
-var carouselBusy  = false;
+var CLONE_COUNT = 3;
 
 function getCarouselVisible() {
   if (window.innerWidth <= 480) return 1;
@@ -143,265 +132,88 @@ function getCarouselVisible() {
   return 3;
 }
 
-function buildCarouselClones() {
-  var grid = document.getElementById("pieces-grid");
-  if (!grid) return;
-  var old = grid.querySelectorAll(".carousel-clone");
-  for (var i = 0; i < old.length; i++) old[i].parentNode.removeChild(old[i]);
-  var real = grid.querySelectorAll(".piece-card:not(.carousel-clone)");
-  var n = real.length;
-  var c = Math.min(CLONE_COUNT, n);
-  /* prepend clones of the last c real cards (in order) */
-  var frag = document.createDocumentFragment();
-  for (var j = 0; j < c; j++) {
-    var head = real[n - c + j].cloneNode(true);
-    head.classList.add("carousel-clone");
-    frag.appendChild(head);
+function makeCarousel(gridId, viewportId, prevId, nextId, pieces) {
+  var index  = CLONE_COUNT;
+  var busy   = false;
+  var touchX = 0;
+
+  function buildClones() {
+    var grid = document.getElementById(gridId);
+    if (!grid) return;
+    var old = grid.querySelectorAll(".carousel-clone");
+    for (var i = 0; i < old.length; i++) old[i].parentNode.removeChild(old[i]);
+    var real = grid.querySelectorAll(".piece-card:not(.carousel-clone)");
+    var n = real.length, c = Math.min(CLONE_COUNT, n);
+    var frag = document.createDocumentFragment();
+    for (var j = 0; j < c; j++) { var h = real[n-c+j].cloneNode(true); h.classList.add("carousel-clone"); frag.appendChild(h); }
+    grid.insertBefore(frag, grid.firstChild);
+    for (var k = 0; k < c; k++) { var t = real[k].cloneNode(true); t.classList.add("carousel-clone"); grid.appendChild(t); }
   }
-  grid.insertBefore(frag, grid.firstChild);
-  /* append clones of the first c real cards */
-  for (var k = 0; k < c; k++) {
-    var tail = real[k].cloneNode(true);
-    tail.classList.add("carousel-clone");
-    grid.appendChild(tail);
+
+  function getStep(viewport) {
+    var grid = document.getElementById(gridId);
+    var card = grid && grid.querySelector(".piece-card:not(.carousel-clone)");
+    if (card) return card.getBoundingClientRect().width + 28;
+    var v = getCarouselVisible();
+    return (viewport.offsetWidth - 16 - (v - 1) * 28) / v + 28;
   }
-}
 
-function getCardStep(viewport) {
-  var grid = document.getElementById("pieces-grid");
-  var card = grid && grid.querySelector(".piece-card:not(.carousel-clone)");
-  if (card) return card.getBoundingClientRect().width + 28;
-  /* fallback: derive from inner width (viewport padding: 0 8px = 16px) */
-  var visible = getCarouselVisible();
-  return (viewport.offsetWidth - 16 - (visible - 1) * 28) / visible + 28;
-}
-
-function carouselMove(dir) {
-  if (carouselBusy) return;
-  var viewport = document.getElementById("carousel-viewport");
-  var grid     = document.getElementById("pieces-grid");
-  if (!grid || !viewport || PIECES.length <= getCarouselVisible()) return;
-
-  var step = getCardStep(viewport);
-  carouselIndex += dir;
-  carouselBusy = true;
-
-  gsap.to(grid, {
-    x: -(carouselIndex * step),
-    duration: 0.38,
-    ease: "power2.inOut",
-    onComplete: function() {
-      /* snap to the visually identical real position if we've entered clone territory */
-      if (carouselIndex >= CLONE_COUNT + PIECES.length) {
-        carouselIndex = CLONE_COUNT;
-        gsap.set(grid, {x: -(carouselIndex * step)});
-      } else if (carouselIndex < CLONE_COUNT) {
-        carouselIndex = CLONE_COUNT + PIECES.length - 1;
-        gsap.set(grid, {x: -(carouselIndex * step)});
+  function move(dir) {
+    if (busy) return;
+    var viewport = document.getElementById(viewportId);
+    var grid     = document.getElementById(gridId);
+    if (!grid || !viewport || pieces.length <= getCarouselVisible()) return;
+    var step = getStep(viewport);
+    index += dir;
+    busy = true;
+    gsap.to(grid, { x: -(index * step), duration: 0.38, ease: "power2.inOut",
+      onComplete: function() {
+        if      (index >= CLONE_COUNT + pieces.length) { index = CLONE_COUNT; }
+        else if (index < CLONE_COUNT)                  { index = CLONE_COUNT + pieces.length - 1; }
+        else { busy = false; return; }
+        gsap.set(grid, { x: -(index * step) });
+        busy = false;
       }
-      carouselBusy = false;
-    }
-  });
-}
-
-function updateCarousel() {
-  var viewport = document.getElementById("carousel-viewport");
-  var grid     = document.getElementById("pieces-grid");
-  var prev     = document.getElementById("carousel-prev");
-  var next     = document.getElementById("carousel-next");
-  if (!grid || !viewport) return;
-  gsap.killTweensOf(grid);
-  carouselIndex = CLONE_COUNT;
-  buildCarouselClones();
-  gsap.set(grid, {x: -(carouselIndex * getCardStep(viewport))});
-  var hidden = PIECES.length <= getCarouselVisible();
-  if (prev) prev.disabled = hidden;
-  if (next) next.disabled = hidden;
-}
-
-function carouselTouchStart(e) {
-  touchStartX = e.touches[0].clientX;
-}
-function carouselTouchEnd(e) {
-  var dx = e.changedTouches[0].clientX - touchStartX;
-  if (Math.abs(dx) > 40) carouselMove(dx < 0 ? 1 : -1);
-}
-
-window.addEventListener("resize", function() {
-  carouselBusy  = false;
-  carouselBusy2 = false;
-  carouselBusy3 = false;
-  updateCarousel();
-  updateCarousel2();
-  updateCarousel3();
-});
-
-/* ── CAROUSEL 2 (Fashion Collection) ── */
-var carouselIndex2 = CLONE_COUNT;
-var carouselBusy2  = false;
-var touchStartX2   = 0;
-
-function buildCarouselClones2() {
-  var grid = document.getElementById("pieces-grid-2");
-  if (!grid) return;
-  var old = grid.querySelectorAll(".carousel-clone");
-  for (var i = 0; i < old.length; i++) old[i].parentNode.removeChild(old[i]);
-  var real = grid.querySelectorAll(".piece-card:not(.carousel-clone)");
-  var n = real.length;
-  var c = Math.min(CLONE_COUNT, n);
-  var frag = document.createDocumentFragment();
-  for (var j = 0; j < c; j++) {
-    var head = real[n - c + j].cloneNode(true);
-    head.classList.add("carousel-clone");
-    frag.appendChild(head);
+    });
   }
-  grid.insertBefore(frag, grid.firstChild);
-  for (var k = 0; k < c; k++) {
-    var tail = real[k].cloneNode(true);
-    tail.classList.add("carousel-clone");
-    grid.appendChild(tail);
+
+  function update() {
+    var viewport = document.getElementById(viewportId);
+    var grid     = document.getElementById(gridId);
+    var prev     = document.getElementById(prevId);
+    var next     = document.getElementById(nextId);
+    if (!grid || !viewport) return;
+    gsap.killTweensOf(grid);
+    index = CLONE_COUNT;
+    buildClones();
+    gsap.set(grid, { x: -(index * getStep(viewport)) });
+    var hidden = pieces.length <= getCarouselVisible();
+    if (prev) prev.disabled = hidden;
+    if (next) next.disabled = hidden;
   }
+
+  function touchStart(e) { touchX = e.touches[0].clientX; }
+  function touchEnd(e)   { var dx = e.changedTouches[0].clientX - touchX; if (Math.abs(dx) > 40) move(dx < 0 ? 1 : -1); }
+
+  return { move: move, update: update, touchStart: touchStart, touchEnd: touchEnd };
 }
 
-function getCardStep2(viewport) {
-  var grid = document.getElementById("pieces-grid-2");
-  var card = grid && grid.querySelector(".piece-card:not(.carousel-clone)");
-  if (card) return card.getBoundingClientRect().width + 28;
-  var visible = getCarouselVisible();
-  return (viewport.offsetWidth - 16 - (visible - 1) * 28) / visible + 28;
-}
+var C1 = makeCarousel("pieces-grid",   "carousel-viewport",   "carousel-prev",   "carousel-next",   PIECES);
+var C2 = makeCarousel("pieces-grid-2", "carousel-viewport-2", "carousel-prev-2", "carousel-next-2", PIECES2);
+var C3 = makeCarousel("pieces-grid-3", "carousel-viewport-3", "carousel-prev-3", "carousel-next-3", PIECES3);
 
-function carouselMove2(dir) {
-  if (carouselBusy2) return;
-  var viewport = document.getElementById("carousel-viewport-2");
-  var grid     = document.getElementById("pieces-grid-2");
-  if (!grid || !viewport || PIECES2.length <= getCarouselVisible()) return;
+/* Shims so HTML onclick attributes keep working */
+function carouselMove(d)        { C1.move(d); }
+function carouselMove2(d)       { C2.move(d); }
+function carouselMove3(d)       { C3.move(d); }
+function carouselTouchStart(e)  { C1.touchStart(e); }
+function carouselTouchEnd(e)    { C1.touchEnd(e); }
+function carouselTouchStart2(e) { C2.touchStart(e); }
+function carouselTouchEnd2(e)   { C2.touchEnd(e); }
+function carouselTouchStart3(e) { C3.touchStart(e); }
+function carouselTouchEnd3(e)   { C3.touchEnd(e); }
 
-  var step = getCardStep2(viewport);
-  carouselIndex2 += dir;
-  carouselBusy2 = true;
-
-  gsap.to(grid, {
-    x: -(carouselIndex2 * step),
-    duration: 0.38,
-    ease: "power2.inOut",
-    onComplete: function() {
-      if (carouselIndex2 >= CLONE_COUNT + PIECES2.length) {
-        carouselIndex2 = CLONE_COUNT;
-        gsap.set(grid, {x: -(carouselIndex2 * step)});
-      } else if (carouselIndex2 < CLONE_COUNT) {
-        carouselIndex2 = CLONE_COUNT + PIECES2.length - 1;
-        gsap.set(grid, {x: -(carouselIndex2 * step)});
-      }
-      carouselBusy2 = false;
-    }
-  });
-}
-
-function updateCarousel2() {
-  var viewport = document.getElementById("carousel-viewport-2");
-  var grid     = document.getElementById("pieces-grid-2");
-  var prev     = document.getElementById("carousel-prev-2");
-  var next     = document.getElementById("carousel-next-2");
-  if (!grid || !viewport) return;
-  gsap.killTweensOf(grid);
-  carouselIndex2 = CLONE_COUNT;
-  buildCarouselClones2();
-  gsap.set(grid, {x: -(carouselIndex2 * getCardStep2(viewport))});
-  var hidden = PIECES2.length <= getCarouselVisible();
-  if (prev) prev.disabled = hidden;
-  if (next) next.disabled = hidden;
-}
-
-function carouselTouchStart2(e) { touchStartX2 = e.touches[0].clientX; }
-function carouselTouchEnd2(e) {
-  var dx = e.changedTouches[0].clientX - touchStartX2;
-  if (Math.abs(dx) > 40) carouselMove2(dx < 0 ? 1 : -1);
-}
-
-/* ── CAROUSEL 3 (Faces Collection) ── */
-var carouselIndex3 = CLONE_COUNT;
-var carouselBusy3  = false;
-var touchStartX3   = 0;
-
-function buildCarouselClones3() {
-  var grid = document.getElementById("pieces-grid-3");
-  if (!grid) return;
-  var old = grid.querySelectorAll(".carousel-clone");
-  for (var i = 0; i < old.length; i++) old[i].parentNode.removeChild(old[i]);
-  var real = grid.querySelectorAll(".piece-card:not(.carousel-clone)");
-  var n = real.length;
-  var c = Math.min(CLONE_COUNT, n);
-  var frag = document.createDocumentFragment();
-  for (var j = 0; j < c; j++) {
-    var head = real[n - c + j].cloneNode(true);
-    head.classList.add("carousel-clone");
-    frag.appendChild(head);
-  }
-  grid.insertBefore(frag, grid.firstChild);
-  for (var k = 0; k < c; k++) {
-    var tail = real[k].cloneNode(true);
-    tail.classList.add("carousel-clone");
-    grid.appendChild(tail);
-  }
-}
-
-function getCardStep3(viewport) {
-  var grid = document.getElementById("pieces-grid-3");
-  var card = grid && grid.querySelector(".piece-card:not(.carousel-clone)");
-  if (card) return card.getBoundingClientRect().width + 28;
-  var visible = getCarouselVisible();
-  return (viewport.offsetWidth - 16 - (visible - 1) * 28) / visible + 28;
-}
-
-function carouselMove3(dir) {
-  if (carouselBusy3) return;
-  var viewport = document.getElementById("carousel-viewport-3");
-  var grid     = document.getElementById("pieces-grid-3");
-  if (!grid || !viewport || PIECES3.length <= getCarouselVisible()) return;
-
-  var step = getCardStep3(viewport);
-  carouselIndex3 += dir;
-  carouselBusy3 = true;
-
-  gsap.to(grid, {
-    x: -(carouselIndex3 * step),
-    duration: 0.38,
-    ease: "power2.inOut",
-    onComplete: function() {
-      if (carouselIndex3 >= CLONE_COUNT + PIECES3.length) {
-        carouselIndex3 = CLONE_COUNT;
-        gsap.set(grid, {x: -(carouselIndex3 * step)});
-      } else if (carouselIndex3 < CLONE_COUNT) {
-        carouselIndex3 = CLONE_COUNT + PIECES3.length - 1;
-        gsap.set(grid, {x: -(carouselIndex3 * step)});
-      }
-      carouselBusy3 = false;
-    }
-  });
-}
-
-function updateCarousel3() {
-  var viewport = document.getElementById("carousel-viewport-3");
-  var grid     = document.getElementById("pieces-grid-3");
-  var prev     = document.getElementById("carousel-prev-3");
-  var next     = document.getElementById("carousel-next-3");
-  if (!grid || !viewport) return;
-  gsap.killTweensOf(grid);
-  carouselIndex3 = CLONE_COUNT;
-  buildCarouselClones3();
-  gsap.set(grid, {x: -(carouselIndex3 * getCardStep3(viewport))});
-  var hidden = PIECES3.length <= getCarouselVisible();
-  if (prev) prev.disabled = hidden;
-  if (next) next.disabled = hidden;
-}
-
-function carouselTouchStart3(e) { touchStartX3 = e.touches[0].clientX; }
-function carouselTouchEnd3(e) {
-  var dx = e.changedTouches[0].clientX - touchStartX3;
-  if (Math.abs(dx) > 40) carouselMove3(dx < 0 ? 1 : -1);
-}
-
+window.addEventListener("resize", function() { C1.update(); C2.update(); C3.update(); });
 /* ── COLLECTIONS PAGE ── */
 function renderCollectionsPage() {
   var grid = document.getElementById("collections-grid");
@@ -412,7 +224,7 @@ function renderCollectionsPage() {
     html += "<div class=\"piece-card\">"
           + "<img class=\"piece-img\" src=\"" + IMGS[p.id] + "\" alt=\"" + p.name + "\">"
           + "<div class=\"piece-body\">"
-          + "<div class=\"piece-name\">" + p.name + "</div>"
+          + "<div class=\"piece-name\"><a href=\"product.html?design=" + p.id + "\" class=\"piece-name-link\">" + p.name + "</a></div>"
           + "<div class=\"piece-desc\">" + p.desc + "</div>"
           + "<a class=\"collection-cta-btn\" href=\"collection.html?id=" + p.id + "\">View Collection &#8594;</a>"
           + "</div></div>";
@@ -446,6 +258,85 @@ function renderCollectionPage() {
           + "</div></div>";
   }
   document.getElementById("coll-products").innerHTML = html;
+}
+
+/* ── PRODUCT PAGE ── */
+var _selectedProdPage = null;
+
+function renderProductPage() {
+  var params = new URLSearchParams(window.location.search);
+  var id     = params.get("design");
+  var piece  = getPiece(id);
+  var body   = document.getElementById("product-body");
+  if (!piece) { if (body) body.innerHTML = "<p>Product not found.</p>"; return; }
+
+  document.title = piece.name + " — Krystal’s Art Shop";
+  var bc = document.getElementById("product-breadcrumb");
+  if (bc) bc.innerHTML =
+    "<a href=\"index.html\" style=\"text-decoration:none;color:inherit\">Home</a>"
+    + " &rsaquo; <a href=\"shop.html\" style=\"text-decoration:none;color:inherit\">Shop</a>"
+    + " &rsaquo; " + piece.name;
+
+  var icons = "";
+  for (var j = 0; j < piece.products.length; j++) {
+    var pr = piece.products[j];
+    icons += "<button class=\"prod-icon-btn\" onclick=\"selectProdPage('" + pr.type + "')\"><span class=\"prod-emoji\">" + PROD_EMOJI[pr.type] + "</span><span class=\"prod-icon-label\">" + PROD_SHORT[pr.type] + "</span></button>";
+  }
+
+  if (body) body.innerHTML =
+    "<div class=\"product-layout\">"
+    + "<img class=\"product-img\" src=\"" + getImg(piece.id) + "\" alt=\"" + piece.name + "\">"
+    + "<div class=\"product-meta\">"
+    + "<div class=\"product-title\">" + piece.name + "</div>"
+    + "<div class=\"product-desc\">"  + piece.desc  + "</div>"
+    + "<div class=\"prod-carousel\" id=\"product-type-selector\">" + icons + "</div>"
+    + "<div id=\"product-action\"></div>"
+    + "</div></div>";
+}
+
+function renderProductPageAction() {
+  var params = new URLSearchParams(window.location.search);
+  var piece  = getPiece(params.get("design"));
+  if (!piece) return;
+
+  var btns = document.querySelectorAll("#product-type-selector .prod-icon-btn");
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].classList.toggle("selected", piece.products[i].type === _selectedProdPage);
+  }
+
+  var action = document.getElementById("product-action");
+  if (!action) return;
+  if (_selectedProdPage) {
+    var prod = null;
+    for (var j = 0; j < piece.products.length; j++) {
+      if (piece.products[j].type === _selectedProdPage) { prod = piece.products[j]; break; }
+    }
+    action.innerHTML = "<span class=\"card-price\">$" + prod.price + "</span>"
+      + "<button class=\"card-add-btn\" onclick=\"addFromProductPage('" + piece.id + "','" + _selectedProdPage + "')\">Add to Cart</button>";
+  } else {
+    action.innerHTML = "<span class=\"card-price-empty\">Select a product type</span>";
+  }
+}
+
+function selectProdPage(type) {
+  _selectedProdPage = (_selectedProdPage === type) ? null : type;
+  renderProductPageAction();
+}
+
+function addFromProductPage(pieceId, type) {
+  var piece = getPiece(pieceId);
+  if (!piece) return;
+  var prod = null;
+  for (var j = 0; j < piece.products.length; j++) {
+    if (piece.products[j].type === type) { prod = piece.products[j]; break; }
+  }
+  if (!prod) return;
+  var key = pieceId + "__" + type;
+  cart[key] = (cart[key] || 0) + 1;
+  _selectedProdPage = null;
+  updateBadge();
+  renderProductPageAction();
+  toast(piece.name + " " + prod.label + " added to cart!");
 }
 
 /* ── SHOP PAGE ── */
@@ -525,9 +416,9 @@ function renderShopPage() {
   for (var m = 0; m < filtered.length; m++) {
     var prod = filtered[m];
     html += "<div class=\"variant-card\">"
-          + "<img class=\"variant-img\" src=\"" + prod.img + "\" alt=\"" + prod.pieceName + " " + prod.typeLabel + "\">"
+          + "<a href=\"product.html?design=" + prod.pieceId + "\" class=\"piece-img-link\"><img class=\"variant-img\" src=\"" + prod.img + "\" alt=\"" + prod.pieceName + " " + prod.typeLabel + "\"></a>"
           + "<div class=\"variant-body\">"
-          + "<div class=\"variant-piece\">" + prod.pieceName + " " + prod.typeLabel + "</div>"
+          + "<div class=\"variant-piece\"><a href=\"product.html?design=" + prod.pieceId + "\" class=\"piece-name-link\">" + prod.pieceName + " " + prod.typeLabel + "</a></div>"
           + "<div class=\"variant-coll\">" + prod.collLabel + "</div>"
           + "<div class=\"variant-price\">$" + prod.price + "</div>"
           + "<button class=\"variant-add\" onclick=\"shopAdd('" + prod.collId + "','" + prod.pieceId + "','" + prod.type + "')\">Add to Cart</button>"
@@ -579,43 +470,29 @@ window.onload = function() {
   } else if (PAGE === "collection") {
     renderCollectionPage();
     renderCartBody();
+  } else if (PAGE === "product") {
+    renderProductPage();
+    renderCartBody();
   } else {
     renderArtView();
     renderArtView2();
     renderArtView3();
-    setTimeout(function() {
-      var v = document.getElementById("view-art");
-      if (v) v.classList.add("visible");
-    }, 20);
   }
   updateBadge();
   document.addEventListener("keydown", function(e){ if(e.key==="Escape") closeCart(); });
 };
 
-/* ── MODE SWITCH ── */
-function setMode(mode) {
-  if (mode === activeMode) return;
-  activeMode = mode;
-  var artView  = document.getElementById("view-art");
-  var itemView = document.getElementById("view-item");
-  var navArt   = document.getElementById("nav-art");
-  var navItem  = document.getElementById("nav-item");
-  var leaving  = mode === "art" ? itemView : artView;
-  var entering = mode === "art" ? artView  : itemView;
-  leaving.classList.remove("visible");
-  setTimeout(function() {
-    leaving.classList.remove("active");
-    entering.classList.add("active");
-    setTimeout(function() { entering.classList.add("visible"); }, 20);
-  }, 300);
-  navArt.classList.toggle("active",  mode === "art");
-  navItem.classList.toggle("active", mode === "item");
-}
 
 /* ── HELPERS ── */
 function getPiece(id) {
-  for (var i = 0; i < PIECES.length; i++) { if (PIECES[i].id === id) return PIECES[i]; }
+  var all = [PIECES, PIECES2, PIECES3];
+  for (var a = 0; a < all.length; a++) {
+    for (var i = 0; i < all[a].length; i++) { if (all[a][i].id === id) return all[a][i]; }
+  }
   return null;
+}
+function getImg(id) {
+  return IMGS[id] || IMGS2[id] || IMGS3[id] || "";
 }
 function getProd(piece, type) {
   for (var j = 0; j < piece.products.length; j++) {
@@ -627,270 +504,89 @@ function getProd(piece, type) {
 var PROD_EMOJI = {notebook:"📓", mug:"☕", poster:"🖼️", tote:"👜"};
 var PROD_SHORT = {notebook:"Book", mug:"Mug", poster:"Print", tote:"Tote"};
 
-/* tracks selected product per piece: { pieceId: productType } */
-var selectedProd = {};
+var selectedProd  = {};
+var selectedProd2 = {};
+var selectedProd3 = {};
 
-function renderArtView() {
+/* ── SHARED CAROUSEL RENDER ── */
+function renderCarousel(pieces, imgs, gridId, selected, selectFn, addFn, carousel) {
   var html = "";
-  for (var i = 0; i < PIECES.length; i++) {
-    var p = PIECES[i];
-    var sel = selectedProd[p.id] || null;
-
-    /* icon carousel */
+  for (var i = 0; i < pieces.length; i++) {
+    var p = pieces[i];
+    var sel = selected[p.id] || null;
     var icons = "";
     for (var j = 0; j < p.products.length; j++) {
       var pr = p.products[j];
-      var isSel = sel === pr.type;
-      icons += "<button class=\"prod-icon-btn" + (isSel ? " selected" : "") + "\""
-             + " onclick=\"selectProd('" + p.id + "','" + pr.type + "')\">"
+      icons += "<button class=\"prod-icon-btn" + (sel === pr.type ? " selected" : "") + "\""
+             + " onclick=\"" + selectFn + "('" + p.id + "','" + pr.type + "')\">"
              + "<span class=\"prod-emoji\">" + PROD_EMOJI[pr.type] + "</span>"
              + "<span class=\"prod-icon-label\">" + PROD_SHORT[pr.type] + "</span>"
              + "</button>";
     }
-
-    /* action row */
     var action = "";
     if (sel) {
       var selPr = null;
-      for (var k = 0; k < p.products.length; k++) {
-        if (p.products[k].type === sel) { selPr = p.products[k]; break; }
-      }
+      for (var k = 0; k < p.products.length; k++) { if (p.products[k].type === sel) { selPr = p.products[k]; break; } }
       action = "<span class=\"card-price\">$" + selPr.price + "</span>"
-             + "<button class=\"card-add-btn\" onclick=\"add('" + p.id + "','" + sel + "')\">Add to Cart</button>";
+             + "<button class=\"card-add-btn\" onclick=\"" + addFn + "('" + p.id + "','" + sel + "')\">Add to Cart</button>";
     } else {
       action = "<span class=\"card-price-empty\">Select a product</span>";
     }
-
     html += "<div class=\"piece-card\">"
-          + "<img class=\"piece-img\" src=\"" + IMGS[p.id] + "\" alt=\"" + p.name + "\">"
+          + "<a href=\"product.html?design=" + p.id + "\" class=\"piece-img-link\"><img class=\"piece-img\" src=\"" + imgs[p.id] + "\" alt=\"" + p.name + "\"></a>"
           + "<div class=\"piece-body\">"
-          + "<div class=\"piece-name\">" + p.name + "</div>"
+          + "<div class=\"piece-name\"><a href=\"product.html?design=" + p.id + "\" class=\"piece-name-link\">" + p.name + "</a></div>"
           + "<div class=\"piece-desc\">" + p.desc + "</div>"
           + "<div class=\"prod-carousel\">" + icons + "</div>"
           + "<div class=\"card-action\">" + action + "</div>"
           + "</div></div>";
   }
-  var g = document.getElementById("pieces-grid");
-  if (g) g.innerHTML = html;
-  updateCarousel();
+  var g = document.getElementById(gridId);
+  if (g) { g.innerHTML = html; carousel.update(); }
 }
 
-function selectProd(pieceId, type) {
-  /* toggle off if already selected */
-  if (selectedProd[pieceId] === type) {
-    delete selectedProd[pieceId];
-  } else {
-    selectedProd[pieceId] = type;
-  }
-  renderArtView();
+function renderArtView()  { renderCarousel(PIECES,  IMGS,  "pieces-grid",   selectedProd,  "selectProd",  "add",  C1); }
+function renderArtView2() { renderCarousel(PIECES2, IMGS2, "pieces-grid-2", selectedProd2, "selectProd2", "add2", C2); }
+function renderArtView3() { renderCarousel(PIECES3, IMGS3, "pieces-grid-3", selectedProd3, "selectProd3", "add3", C3); }
+
+/* ── SHARED SELECT ── */
+function selectProdIn(selected, renderFn, pieceId, type) {
+  if (selected[pieceId] === type) delete selected[pieceId];
+  else selected[pieceId] = type;
+  renderFn();
 }
 
-var selectedProd2 = {};
+function selectProd(pieceId, type)  { selectProdIn(selectedProd,  renderArtView,  pieceId, type); }
+function selectProd2(pieceId, type) { selectProdIn(selectedProd2, renderArtView2, pieceId, type); }
+function selectProd3(pieceId, type) { selectProdIn(selectedProd3, renderArtView3, pieceId, type); }
 
-function renderArtView2() {
-  var html = "";
-  for (var i = 0; i < PIECES2.length; i++) {
-    var p   = PIECES2[i];
-    var sel = selectedProd2[p.id] || null;
-    var icons = "";
-    for (var j = 0; j < p.products.length; j++) {
-      var pr    = p.products[j];
-      var isSel = sel === pr.type;
-      icons += "<button class=\"prod-icon-btn" + (isSel ? " selected" : "") + "\""
-             + " onclick=\"selectProd2('" + p.id + "','" + pr.type + "')\">"
-             + "<span class=\"prod-emoji\">" + PROD_EMOJI[pr.type] + "</span>"
-             + "</button>";
-    }
-    var action = "";
-    if (sel) {
-      var selPr = null;
-      for (var k = 0; k < p.products.length; k++) {
-        if (p.products[k].type === sel) { selPr = p.products[k]; break; }
-      }
-      action = "<span class=\"card-price\">$" + selPr.price + "</span>"
-             + "<button class=\"card-add-btn\" onclick=\"add2('" + p.id + "','" + sel + "')\">Add to Cart</button>";
-    } else {
-      action = "<span class=\"card-price-empty\">Select a product</span>";
-    }
-    html += "<div class=\"piece-card\">"
-          + "<img class=\"piece-img\" src=\"" + IMGS2[p.id] + "\" alt=\"" + p.name + "\">"
-          + "<div class=\"piece-body\">"
-          + "<div class=\"piece-name\">" + p.name + "</div>"
-          + "<div class=\"piece-desc\">" + p.desc + "</div>"
-          + "<div class=\"prod-carousel\">" + icons + "</div>"
-          + "<div class=\"card-action\">" + action + "</div>"
-          + "</div></div>";
-  }
-  var g2 = document.getElementById("pieces-grid-2");
-  if (g2) {
-    g2.innerHTML = html;
-    updateCarousel2();
-  }
-}
-
-function selectProd2(pieceId, type) {
-  if (selectedProd2[pieceId] === type) {
-    delete selectedProd2[pieceId];
-  } else {
-    selectedProd2[pieceId] = type;
-  }
-  renderArtView2();
-}
-
-function add2(pieceId, type) {
+/* ── SHARED ADD ── */
+function addToCart(pieces, selected, renderFn, pieceId, type) {
   var piece = null;
-  for (var i = 0; i < PIECES2.length; i++) { if (PIECES2[i].id === pieceId) { piece = PIECES2[i]; break; } }
+  for (var i = 0; i < pieces.length; i++) { if (pieces[i].id === pieceId) { piece = pieces[i]; break; } }
   if (!piece) return;
   var prod = null;
   for (var j = 0; j < piece.products.length; j++) { if (piece.products[j].type === type) { prod = piece.products[j]; break; } }
   if (!prod) return;
   var key = pieceId + "__" + type;
   cart[key] = (cart[key] || 0) + 1;
-  delete selectedProd2[pieceId];
+  delete selected[pieceId];
   updateBadge();
-  renderArtView2();
+  renderFn();
   toast(piece.name + " " + prod.label + " added to cart!");
 }
 
-/* ── RENDER: FACES COLLECTION ── */
-var selectedProd3 = {};
-
-function renderArtView3() {
-  var html = "";
-  for (var i = 0; i < PIECES3.length; i++) {
-    var p   = PIECES3[i];
-    var sel = selectedProd3[p.id] || null;
-    var icons = "";
-    for (var j = 0; j < p.products.length; j++) {
-      var pr    = p.products[j];
-      var isSel = sel === pr.type;
-      icons += "<button class=\"prod-icon-btn" + (isSel ? " selected" : "") + "\""
-             + " onclick=\"selectProd3('" + p.id + "','" + pr.type + "')\">"
-             + "<span class=\"prod-emoji\">" + PROD_EMOJI[pr.type] + "</span>"
-             + "</button>";
-    }
-    var action = "";
-    if (sel) {
-      var selPr = null;
-      for (var k = 0; k < p.products.length; k++) {
-        if (p.products[k].type === sel) { selPr = p.products[k]; break; }
-      }
-      action = "<span class=\"card-price\">$" + selPr.price + "</span>"
-             + "<button class=\"card-add-btn\" onclick=\"add3('" + p.id + "','" + sel + "')\">Add to Cart</button>";
-    } else {
-      action = "<span class=\"card-price-empty\">Select a product</span>";
-    }
-    html += "<div class=\"piece-card\">"
-          + "<img class=\"piece-img\" src=\"" + IMGS3[p.id] + "\" alt=\"" + p.name + "\">"
-          + "<div class=\"piece-body\">"
-          + "<div class=\"piece-name\">" + p.name + "</div>"
-          + "<div class=\"piece-desc\">" + p.desc + "</div>"
-          + "<div class=\"prod-carousel\">" + icons + "</div>"
-          + "<div class=\"card-action\">" + action + "</div>"
-          + "</div></div>";
-  }
-  var g3 = document.getElementById("pieces-grid-3");
-  if (g3) {
-    g3.innerHTML = html;
-    updateCarousel3();
-  }
-}
-
-function selectProd3(pieceId, type) {
-  if (selectedProd3[pieceId] === type) {
-    delete selectedProd3[pieceId];
-  } else {
-    selectedProd3[pieceId] = type;
-  }
-  renderArtView3();
-}
-
-function add3(pieceId, type) {
-  var piece = null;
-  for (var i = 0; i < PIECES3.length; i++) { if (PIECES3[i].id === pieceId) { piece = PIECES3[i]; break; } }
-  if (!piece) return;
-  var prod = null;
-  for (var j = 0; j < piece.products.length; j++) { if (piece.products[j].type === type) { prod = piece.products[j]; break; } }
-  if (!prod) return;
-  var key = pieceId + "__" + type;
-  cart[key] = (cart[key] || 0) + 1;
-  delete selectedProd3[pieceId];
-  updateBadge();
-  renderArtView3();
-  renderVariants();
-  toast(piece.name + " " + prod.label + " added to cart!");
-}
-
-/* ── RENDER: TYPE SELECTOR ── */
-function renderTypeList() {
-  var html = "";
-  for (var i = 0; i < TYPES.length; i++) {
-    var t = TYPES[i];
-    html += "<button class=\"type-btn" + (t.type === activeType ? " active" : "") + "\""
-          + " onclick=\"selectType('" + t.type + "')\" role=\"listitem\">"
-          + "<span class=\"type-icon\">" + t.icon + "</span>"
-          + "<span class=\"type-info\">"
-          + "<span class=\"type-name\">" + t.label + "</span>"
-          + "<span class=\"type-sub\">" + t.desc + "</span>"
-          + "</span></button>";
-  }
-  var tl = document.getElementById("type-list");
-  if (tl) tl.innerHTML = html;
-}
-
-/* ── RENDER: VARIANTS PANEL ── */
-function renderVariants() {
-  var typeMeta = TYPES[0];
-  for (var k = 0; k < TYPES.length; k++) {
-    if (TYPES[k].type === activeType) { typeMeta = TYPES[k]; break; }
-  }
-  var cards = "";
-  for (var i = 0; i < PIECES.length; i++) {
-    var p    = PIECES[i];
-    var prod = getProd(p, activeType);
-    if (!prod) continue;
-    cards += "<div class=\"variant-card\">"
-           + "<img class=\"variant-img\" src=\"" + IMGS[p.id] + "\" alt=\"" + p.name + " " + typeMeta.label + "\">"
-           + "<div class=\"variant-body\">"
-           + "<div class=\"variant-piece\">" + p.name + "</div>"
-           + "<div class=\"variant-price\">$" + prod.price + "</div>"
-           + "<button class=\"variant-add\" onclick=\"add('" + p.id + "','" + activeType + "')\">Add to Cart</button>"
-           + "</div></div>";
-  }
-  var vp = document.getElementById("variants-panel");
-  if (vp) vp.innerHTML =
-      "<div class=\"variants-header\">"
-    + "<div class=\"variants-title\">" + typeMeta.label + "</div>"
-    + "<div class=\"variants-sub\">Available in " + PIECES.length + " art prints. Choose your favourite.</div>"
-    + "</div><div class=\"variants-grid\">" + cards + "</div>";
-}
-
-function selectType(type) {
-  activeType = type;
-  renderTypeList();
-  renderVariants();
-}
+function add(pieceId, type)  { addToCart(PIECES,  selectedProd,  renderArtView,  pieceId, type); }
+function add2(pieceId, type) { addToCart(PIECES2, selectedProd2, renderArtView2, pieceId, type); }
+function add3(pieceId, type) { addToCart(PIECES3, selectedProd3, renderArtView3, pieceId, type); }
 
 /* ── CART LOGIC ── */
-function add(pieceId, type) {
-  var piece = getPiece(pieceId);
-  var prod  = getProd(piece, type);
-  if (!prod) return;
-  var key = pieceId + "__" + type;
-  cart[key] = (cart[key] || 0) + 1;
-  delete selectedProd[pieceId];
-  updateBadge();
-  renderArtView();
-  renderVariants();
-  toast(piece.name + " " + prod.label + " added to cart!");
-}
 function remove(key) {
   if (!cart[key]) return;
   delete cart[key];
   updateBadge();
   renderCartBody();
   renderArtView();
-  renderVariants();
 }
 function changeQty(key, d) {
   if (!cart[key]) return;
@@ -933,7 +629,7 @@ function renderCartBody() {
     var line  = prod.price * q;
     total    += line;
     html += "<div class=\"ci\">"
-          + "<img class=\"ci-img\" src=\"" + IMGS[parts[0]] + "\" alt=\"\">"
+          + "<img class=\"ci-img\" src=\"" + getImg(parts[0]) + "\" alt=\"\">"
           + "<div class=\"ci-info\">"
           + "<div class=\"ci-name\">" + piece.name + "</div>"
           + "<div class=\"ci-type\">" + prod.label + "</div>"
@@ -970,7 +666,19 @@ function placeOrder() {
 }
 
 /* ── CART DRAWER ── */
+function closeNav() {
+  var h = document.querySelector("header");
+  if (h) h.classList.remove("nav-open");
+  var btn = document.querySelector(".nav-toggle");
+  if (btn) btn.setAttribute("aria-expanded", "false");
+}
+function toggleNav() {
+  var h = document.querySelector("header");
+  var open = h.classList.toggle("nav-open");
+  h.querySelector(".nav-toggle").setAttribute("aria-expanded", String(open));
+}
 function openCart() {
+  closeNav();
   renderCartBody();
   document.getElementById("overlay").classList.add("on");
   document.getElementById("drawer").classList.add("on");
@@ -981,6 +689,10 @@ function closeCart() {
   document.getElementById("drawer").classList.remove("on");
   document.body.style.overflow = "";
 }
+document.addEventListener("click", function(e) {
+  var h = document.querySelector("header");
+  if (h && h.classList.contains("nav-open") && !h.contains(e.target)) closeNav();
+});
 
 /* ── CONTACT FORM ── */
 function setInterest(selId) {

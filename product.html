@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>All Collections — Krystal's Art Shop</title>
+<title>Product — Krystal's Art Shop</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Imbue:opsz,wght@10..100,300;10..100,400;10..100,700&display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
 <header>
   <a class="logo" href="index.html"><span>Krystal's</span> Art Shop</a>
   <nav class="site-nav">
-    <a class="nav-link active" href="shop.html">Shop</a>
+    <a class="nav-link" href="shop.html">Shop</a>
     <a class="nav-link" href="index.html#contact">Contact</a>
   </nav>
   <button class="cart-btn" onclick="openCart()">
@@ -24,12 +24,9 @@
 </header>
 
 <main class="shop">
-  <div style="margin-bottom:16px">
-    <a href="index.html" style="font-size:.82rem;color:var(--muted);text-decoration:none">&#8592; Back to Home</a>
-  </div>
-  <div class="view-label">Browse the collection</div>
-  <div class="view-title">All Collections</div>
-  <div class="pieces-grid" id="collections-grid"></div>
+  <div id="product-breadcrumb" class="coll-breadcrumb"
+       style="font-size:.82rem;color:var(--muted);margin-bottom:28px"></div>
+  <div id="product-body"></div>
 </main>
 
 <footer>
